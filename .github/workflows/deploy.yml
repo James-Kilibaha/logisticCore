@@ -28,9 +28,11 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying to Production..."
           
-            # Optional: If your app runs from a separate deployment folder (e.g., /opt/logistics-prod)
-            # sudo rsync -av --delete --exclude='.git' ./ /opt/logistics-prod/
-            # cd /opt/logistics-prod && pip install -r requirements.txt
+            # Sync repository files to production directory
+            sudo rsync -av --delete --exclude='.git' ./ /Data/www/logistics/prod/backend/
+          
+            # Install/update dependencies inside the production venv
+            sudo /Data/www/logistics/prod/backend/venv/bin/pip install -r /Data/www/logistics/prod/backend/requirements.txt
           
             # Restart the production FastAPI service
             sudo systemctl restart logistics-api-prod.service
@@ -40,9 +42,11 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
             echo "Deploying to UAT..."
           
-            # Optional: Sync files for UAT if using a dedicated directory
-            # sudo rsync -av --delete --exclude='.git' ./ /opt/logistics-uat/
-            # cd /opt/logistics-uat && pip install -r requirements.txt
+            # Sync repository files to UAT directory
+            sudo rsync -av --delete --exclude='.git' ./ /Data/www/logistics/uat/backend/
+          
+            # Install/update dependencies inside the UAT venv
+            sudo /Data/www/logistics/uat/backend/venv/bin/pip install -r /Data/www/logistics/uat/backend/requirements.txt
           
             # Restart the UAT FastAPI service
             sudo systemctl restart logistics-api-uat.service
