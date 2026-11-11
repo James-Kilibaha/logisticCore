@@ -1,0 +1,25 @@
+# Python 3.10+ (inafanya kazi pia Python 3.14)  ->  pip install -r requirements.txt
+fastapi>=0.115.6
+uvicorn[standard]>=0.32.1
+pydantic>=2.10.4
+SQLAlchemy>=2.0.36
+psycopg2-binary>=2.9.10
+alembic>=1.14.0
+python-dotenv>=1.0.1
+python-jose>=3.3.0
+passlib>=1.7.4
+argon2-cffi>=23.1.0          # kuhash nywila (lazima)
+python-multipart>=0.0.20
+APScheduler>=3.11.0,<4
+docxtpl>=0.19.0
+requests>=2.32.3
+reportlab>=4.2.5             # risiti, makabidhiano, manifest na lebo za QR
+openpyxl>=3.1.5              # ripoti za Excel
+tzdata>=2025.2               # saa za Afrika Mashariki (zinahitajika Windows)
+
+# Windows tu: kubadilisha Word -> PDF kupitia MS Word (Linux inatumia LibreOffice)
+docx2pdf==0.1.8; sys_platform == "win32"
+
+# Tests
+pytest>=8.3.4
+httpx>=0.28.1

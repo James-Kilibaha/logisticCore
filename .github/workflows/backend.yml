@@ -1,0 +1,40 @@
+# Kila push / pull request: majaribio yote ya backend dhidi ya PostgreSQL halisi.
+name: TransportCore
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ci-password
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      TEST_DATABASE_NAME: logistic_db_test
+      SECRET_KEY: ci-secret-key-not-for-production
+      SCHEDULER_ENABLED: "false"
+      SMS_AUTO_SEND: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Vifaa vya mfumo (pg_dump kwa backup, LibreOffice kwa PDF za Word)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client libreoffice-writer
+      - run: pip install -r requirements.txt
+      - name: Tests
+        run: pytest -q

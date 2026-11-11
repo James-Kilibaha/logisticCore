@@ -1,0 +1,16 @@
+# systemd: API inawaka yenyewe server ikiwashwa na inajirudisha ikianguka.
+#   sudo cp deploy/logisticcore.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now logisticcore
+[Unit]
+Description=Logistic Core API (SaaS)
+After=network.target postgresql.service
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/logisticCore
+ExecStart=/var/www/logisticCore/venv/bin/uvicorn logistic.app:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
