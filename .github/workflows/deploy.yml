@@ -27,13 +27,16 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying to Production..."
           
-            # Sync repository files (no sudo needed)
-            rsync -av --delete --exclude='.git' ./ /Data/www/logistics/prod/backend/
+            cd /Data/www/logistics/prod/backend
+            rsync -av --delete --exclude='.git' $GITHUB_WORKSPACE/ ./
           
-            # Install/update dependencies inside the production venv (no sudo needed)
-            /Data/www/logistics/prod/backend/venv/bin/pip install --prefer-binary -r /Data/www/logistics/prod/backend/requirements.txt
+            # Auto-create venv if it doesn't exist
+            if [ ! -d "venv" ]; then
+              echo "Production venv missing. Creating virtual environment..."
+              python3 -m venv venv
+            fi
           
-            # Restart the production FastAPI service (uses passwordless sudo)
+            ./venv/bin/pip install --prefer-binary -r requirements.txt
             sudo systemctl restart logistics-api-prod.service
             echo "Production deployment complete & service restarted!"
           
@@ -41,13 +44,16 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
             echo "Deploying to UAT..."
           
-            # Sync repository files (no sudo needed)
-            rsync -av --delete --exclude='.git' ./ /Data/www/logistics/uat/backend/
+            cd /Data/www/logistics/uat/backend
+            rsync -av --delete --exclude='.git' $GITHUB_WORKSPACE/ ./
           
-            # Install/update dependencies inside the UAT venv (no sudo needed)
-            /Data/www/logistics/uat/backend/venv/bin/pip install --prefer-binary -r /Data/www/logistics/uat/backend/requirements.txt
+            # Auto-create venv if it doesn't exist
+            if [ ! -d "venv" ]; then
+              echo "UAT venv missing. Creating virtual environment..."
+              python3 -m venv venv
+            fi
           
-            # Restart the UAT FastAPI service (uses passwordless sudo)
+            ./venv/bin/pip install --prefer-binary -r requirements.txt
             sudo systemctl restart logistics-api-uat.service
             echo "UAT deployment complete & service restarted!"
           fi
