@@ -11,8 +11,8 @@ on:
       - main
 
 jobs:
-  test-and-deploy:
-    runs-on: [self-hosted, logistics-runner]
+  build-and-deploy:
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
@@ -34,11 +34,24 @@ jobs:
           PYTHONPATH: .
         run: |
           pytest -q
-        # Verification: If any test fails, pytest exits with code != 0, 
-        # causing GitHub Actions to abort immediately and block deployment.
 
-      - name: Deploy to Production / UAT
+      - name: Deploy Backend to Server
         if: github.event_name == 'push'
         run: |
           echo "All tests passed successfully. Proceeding with deployment..."
-          # Add your service restart or file sync commands here
+          
+          # If pushing to main (Production - port 8005)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Deploying to Production..."
+            # Optional: pull latest code if repo is cloned in place, or sync files
+            # Restart production FastAPI systemd service
+            sudo systemctl restart logistics-prod-backend
+          
+          # If pushing to uat (UAT - port 8006)
+          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
+            echo "Deploying to UAT..."
+            # Restart UAT FastAPI systemd service
+            sudo systemctl restart logistics-uat-backend
+          fi
+          
+          echo "Deployment complete!"
