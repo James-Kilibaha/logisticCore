@@ -323,7 +323,7 @@ MANIFEST = {
  "logistic_app/lib/features/customers/customer_flows.dart": "11986ee8af681dd448075c27608c249a6635983b889608710eed1dba6d3e4a47",
  "logistic_app/lib/features/customers/customer_detail_page.dart": "af1125a4b1038b1482ef6e8fbab51a590feb09794b8359a93251995fe83dbcb6",
  "logistic_app/lib/features/customers/customers_controller.dart": "b8411fa30308cd3e6891b4ff6d41557d9bd2fa619393371c0569dac606e19423",
- "logistic_app/lib/features/shell/shell_page.dart": "80dc28980208467bfb98723788380f27160065defb0b0ec34b4679c169347b65",
+ "logistic_app/lib/features/shell/shell_page.dart": "f0cebc23420f7186636bc3cbafe7576b417bbaf0a7860f34009dd67f9610e818",
  "logistic_app/lib/features/shell/nav.dart": "75a5b9e2b3acbb43dc689d9ef9136b1eed60e7a32649051066cf8ad6ceebea51",
  "logistic_app/lib/features/expenses/expenses_page.dart": "709ceb77c5490a226d00e902afcc0e1900b96f525ed8faed9b14dba2b91f11af",
  "logistic_app/lib/features/expenses/expenses_controller.dart": "3d07ba4a7571d86faa6d1878ca0d4bb8102ee4aaaadd81afa0864b3d87a9a655",
