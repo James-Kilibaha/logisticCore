@@ -14,22 +14,37 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Deploy Backend to Server
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Deploy to Server
         run: |
           echo "Starting deployment process..."
           
-          # If pushing to main (Production - port 8005)
+          # If pushing to main (Production)
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying to Production..."
-            # Optional: pull latest code or copy files if needed
-            sudo systemctl restart logistics-prod-backend
-            echo "Production service restarted successfully."
           
-          # If pushing to uat (UAT - port 8006)
+            # Optional: If your app runs from a separate deployment folder (e.g., /opt/logistics-prod)
+            # sudo rsync -av --delete --exclude='.git' ./ /opt/logistics-prod/
+            # cd /opt/logistics-prod && pip install -r requirements.txt
+          
+            # Restart the production FastAPI service
+            sudo systemctl restart logistics-api-prod.service
+            echo "Production deployment complete & service restarted!"
+          
+          # If pushing to uat (UAT)
           elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
             echo "Deploying to UAT..."
-            sudo systemctl restart logistics-uat-backend
-            echo "UAT service restarted successfully."
-          fi
           
-          echo "Deployment complete!"
+            # Optional: Sync files for UAT if using a dedicated directory
+            # sudo rsync -av --delete --exclude='.git' ./ /opt/logistics-uat/
+            # cd /opt/logistics-uat && pip install -r requirements.txt
+          
+            # Restart the UAT FastAPI service
+            sudo systemctl restart logistics-api-uat.service
+            echo "UAT deployment complete & service restarted!"
+          fi
