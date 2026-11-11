@@ -32,7 +32,7 @@ jobs:
             sudo rsync -av --delete --exclude='.git' ./ /Data/www/logistics/prod/backend/
           
             # Install/update dependencies inside the production venv
-            sudo /Data/www/logistics/prod/backend/venv/bin/pip install -r /Data/www/logistics/prod/backend/requirements.txt
+            sudo /Data/www/logistics/prod/backend/venv/bin/pip install --prefer-binary -r /Data/www/logistics/prod/backend/requirements.txt
           
             # Restart the production FastAPI service
             sudo systemctl restart logistics-api-prod.service
@@ -46,7 +46,7 @@ jobs:
             sudo rsync -av --delete --exclude='.git' ./ /Data/www/logistics/uat/backend/
           
             # Install/update dependencies inside the UAT venv
-            sudo /Data/www/logistics/uat/backend/venv/bin/pip install -r /Data/www/logistics/uat/backend/requirements.txt
+            sudo /Data/www/logistics/uat/backend/venv/bin/pip install --prefer-binary -r /Data/www/logistics/uat/backend/requirements.txt
           
             # Restart the UAT FastAPI service
             sudo systemctl restart logistics-api-uat.service
