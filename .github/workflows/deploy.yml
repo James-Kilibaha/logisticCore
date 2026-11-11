@@ -1,56 +1,44 @@
-name: Deploy Logistics Flutter Web
+name: Backend Test & Deploy
 
 on:
   push:
     branches:
       - main
       - uat
-    pull_request:
-      branches:
-        - main
-        - uat
+  pull_request:
+    branches:
+      - uat
+      - main
 
 jobs:
-  build-and-deploy:
+  test-and-deploy:
     runs-on: [self-hosted, logistics-runner]
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set Environment Variables
-        id: env
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENV_NAME=prod" >> $GITHUB_ENV
-            echo "API_URL=https://api.logistics.kodimaster.co.tz" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=/Data/www/logistics/prod/frontend" >> $GITHUB_ENV
-          else
-            echo "ENV_NAME=uat" >> $GITHUB_ENV
-            echo "API_URL=https://api.logistics-uat.kodimaster.co.tz" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=/Data/www/logistics/uat/frontend" >> $GITHUB_ENV
-          fi
-
-      - name: Set up Flutter SDK
-        uses: subosito/flutter-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          flutter-version: '3.x'
-          channel: 'stable'
-          cache: true
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build Flutter Web
         run: |
-          flutter build web --release --dart-define=API_BASE_URL=${{ env.API_URL }}
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Deploy to Server via SCP
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "build/web/*"
-          target: "${{ env.DEPLOY_PATH }}"
-          strip_components: 2
+      - name: Run Pytest
+        env:
+          PYTHONPATH: .
+        run: |
+          pytest -q
+        # Verification: If any test fails, pytest exits with code != 0, 
+        # causing GitHub Actions to abort immediately and block deployment.
+
+      - name: Deploy to Production / UAT
+        if: github.event_name == 'push'
+        run: |
+          echo "All tests passed successfully. Proceeding with deployment..."
+          # Add your service restart or file sync commands here
