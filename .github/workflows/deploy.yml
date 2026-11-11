@@ -1,4 +1,4 @@
-name: Deploy Logistics Flutter Web
+name: Backend Deploy
 
 on:
   push:
@@ -7,46 +7,44 @@ on:
       - uat
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set Environment Variables
-        id: env
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Deploy to Server
         run: |
+          echo "Starting deployment process..."
+          
+          # If pushing to main (Production)
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENV_NAME=prod" >> $GITHUB_ENV
-            echo "API_URL=https://api.logistics.kodimaster.co.tz" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=/Data/www/logistics/prod/frontend" >> $GITHUB_ENV
-          else
-            echo "ENV_NAME=uat" >> $GITHUB_ENV
-            echo "API_URL=https://api.logistics-uat.kodimaster.co.tz" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=/Data/www/logistics/uat/frontend" >> $GITHUB_ENV
+            echo "Deploying to Production..."
+          
+            # Optional: If your app runs from a separate deployment folder (e.g., /opt/logistics-prod)
+            # sudo rsync -av --delete --exclude='.git' ./ /opt/logistics-prod/
+            # cd /opt/logistics-prod && pip install -r requirements.txt
+          
+            # Restart the production FastAPI service
+            sudo systemctl restart logistics-api-prod.service
+            echo "Production deployment complete & service restarted!"
+          
+          # If pushing to uat (UAT)
+          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
+            echo "Deploying to UAT..."
+          
+            # Optional: Sync files for UAT if using a dedicated directory
+            # sudo rsync -av --delete --exclude='.git' ./ /opt/logistics-uat/
+            # cd /opt/logistics-uat && pip install -r requirements.txt
+          
+            # Restart the UAT FastAPI service
+            sudo systemctl restart logistics-api-uat.service
+            echo "UAT deployment complete & service restarted!"
           fi
-
-      - name: Set up Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-          channel: 'stable'
-          cache: true
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build Flutter Web
-        run: |
-          flutter build web --release --dart-define=API_BASE_URL=${{ env.API_URL }}
-
-      - name: Deploy to Server via SCP
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "build/web/*"
-          target: "${{ env.DEPLOY_PATH }}"
-          strip_components: 2
