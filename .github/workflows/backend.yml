@@ -1,63 +1,45 @@
-name: TransportCore
+name: Frontend Web Deploy
 
 on:
   push:
-    branches: [main, master, develop]
-  pull_request:
+    branches:
+      - main
+      - uat
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: ci-password
-        ports:
-          - "5432:5432"
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-    env:
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: ci-password
-      DATABASE_HOST: localhost
-      DATABASE_PORT: 5432
-      TEST_DATABASE_NAME: logistic_db_test
-      SECRET_KEY: ci-secret-key-not-for-production
-      SCHEDULER_ENABLED: "false"
-      SMS_AUTO_SEND: "false"
-      FILES_DIR: /tmp/logistic-test-files
+  deploy-web:
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          python-version: '3.12'
-          cache: pip
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
 
-      - name: Install System Dependencies
+      - name: Build Web Release
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            postgresql-client \
-            libreoffice-writer
+          echo "Building Flutter web release..."
+          flutter pub get
+          flutter build web --release
 
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Prepare Test Storage
-        run: mkdir -p "$FILES_DIR"
-
-      - name: Run Tests
-        env:
-          PYTHONPATH: .
-        run: pytest -q
+      - name: Deploy to Server
+        run: |
+          echo "Starting frontend deployment..."
+          
+          # If pushing to main (Production)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Deploying Frontend to Production..."
+            rsync -av --delete build/web/ /Data/www/logistics/prod/frontend/
+            echo "Production frontend deployment complete!"
+          
+          # If pushing to uat (UAT)
+          elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
+            echo "Deploying Frontend to UAT..."
+            rsync -av --delete build/web/ /Data/www/logistics/uat/frontend/
+            echo "UAT frontend deployment complete!"
+          fi
