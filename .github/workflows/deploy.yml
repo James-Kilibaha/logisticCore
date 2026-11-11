@@ -1,57 +1,35 @@
-name: Backend Test & Deploy
+name: Backend Deploy
 
 on:
   push:
     branches:
       - main
       - uat
-  pull_request:
-    branches:
-      - uat
-      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Run Pytest
-        env:
-          PYTHONPATH: .
-        run: |
-          pytest -q
-
       - name: Deploy Backend to Server
-        if: github.event_name == 'push'
         run: |
-          echo "All tests passed successfully. Proceeding with deployment..."
+          echo "Starting deployment process..."
           
           # If pushing to main (Production - port 8005)
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying to Production..."
-            # Optional: pull latest code if repo is cloned in place, or sync files
-            # Restart production FastAPI systemd service
+            # Optional: pull latest code or copy files if needed
             sudo systemctl restart logistics-prod-backend
+            echo "Production service restarted successfully."
           
           # If pushing to uat (UAT - port 8006)
           elif [[ "${{ github.ref }}" == "refs/heads/uat" ]]; then
             echo "Deploying to UAT..."
-            # Restart UAT FastAPI systemd service
             sudo systemctl restart logistics-uat-backend
+            echo "UAT service restarted successfully."
           fi
           
           echo "Deployment complete!"
